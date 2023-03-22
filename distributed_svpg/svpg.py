@@ -28,7 +28,7 @@ world_size = comm_world.Get_size()
 #The policy is a global variable. There will be one policy per MPI process
 
 policy = NeuralNet_A2C(input_dim=(128,1), dim_actions=3, actor_lr = 0.001, critic_lr = 0.002)
-model_file = r'/Users/rama/Downloads/trained_surrogate_weights.h5'
+model_file = r'/Users/benjaminsmith/Downloads/trained_surrogate_weights_phys_31623.h5'
 INS_Env = WallEnv(model_file = model_file)
 
 def print_rank(*args, **kwargs):
@@ -45,8 +45,8 @@ def getLocalPolicyGrad(sim_results, verbose = False, svpg = False, gamma=0.99):
     reward_history_tf = return_collapsed_array(sim_results, 'reward_history')
     done_history_tf = return_collapsed_array(sim_results, 'done_history')
 
-    #print(state_history_tf.shape, actions_history_tf.shape,
-    #      reward_history_tf.shape, done_history_tf.shape)
+    print("state_history_tf: ", state_history_tf.shape, "actions_history_tf: ", actions_history_tf.shape,
+          reward_history_tf.shape, done_history_tf.shape)
 
     _, old_state_values = policy(state_history_tf)
     _, new_state_values = policy(state_history_tf[1:])
@@ -71,11 +71,14 @@ def getLocalPolicyGrad(sim_results, verbose = False, svpg = False, gamma=0.99):
             tf.nn.softplus(tf.reshape(actions_mean_tt, (done_history_tf.shape[0], dim_actions, 2))[:, :, 0]),
             tf.nn.softplus(tf.reshape(actions_mean_tt, (done_history_tf.shape[0], dim_actions, 2))[:, :, 1])).log_prob(
             tf.reshape(actions_history_tf,(done_history_tf.shape[0],dim_actions)))
-
+        
         loss = -tf.reduce_mean(lognorm_dist * advantage_estimate)  # gradient of objective function
+        #entropy = np.random.rand(1)/10 * loss
+        #loss = tf.reduce_mean(loss + entropy)
         gradients = tape.gradient(loss, policy.actor.trainable_variables)
 
     if verbose:
+        #print_rank('Actor Entropy is {}'.format(np.round(entropy, 5)))
         print_rank('Actor loss is {}'.format(np.round(loss,5)))
     if svpg==False:
         policy.actor.optimizer.apply_gradients(zip(gradients, policy.actor.trainable_variables))
@@ -86,11 +89,14 @@ def getLocalPolicyGrad(sim_results, verbose = False, svpg = False, gamma=0.99):
             _, state_values = policy(state_history_tf)
             state_values = state_values[:,0] * done_history_tf
             td_error = tf.reduce_mean((np.squeeze(np.array(value_target)) - state_values) ** 2)  # TD_error
+            entropy = np.random.rand(1)/10 * td_error
+            td_error = tf.reduce_mean(td_error+ entropy)
             valueGradient = tape.gradient(td_error, policy.critic.trainable_variables)
         policy.critic.optimizer.apply_gradients(zip(valueGradient, policy.critic.trainable_variables))
 
     if verbose:
-        print_rank('Critic loss is {}'.format(np.round(td_error, 2)))
+        #print_rank('Critic Entropy is {}'.format(np.round(entropy, 5)))
+        print_rank('Critic loss is {}'.format(np.round(td_error, 5)))
 
     return gradients
 
@@ -121,10 +127,12 @@ def run_simulation(numSimRuns = 10, verbose = False):
             actions_output, _ = policy(state[None,:, None])
 
             actions_output = tf.reshape(actions_output[0, :], (-1, 2))
-
+            std = tf.constant(0.3, shape=(3,))
             # Sample the policy to get the action
-            output_action = tfp.distributions.MultivariateNormalDiag(
-                tf.nn.softplus(actions_output[:, 0]), tf.nn.softplus(actions_output[:, 1])).sample(1)
+            #output_action = tfp.distributions.MultivariateNormalDiag(
+             #   tf.nn.softplus(actions_output[:, 0]), tf.nn.softplus(actions_output[:, 1])).sample(1)
+            output_action = tfp.distributions.MultivariateNormalDiag((actions_output[:, 0]), std).sample(1)
+            #output_action = tfp.distributions.MultivariateNormalDiag((actions_output[:, 0]), ((tf.nn.softmax(actions_output[:, 1]))/5)).sample(1)
 
             output_actions = np.squeeze(tf.clip_by_value(output_action, 0.1, 0.9).numpy())
             if verbose:
@@ -171,6 +179,7 @@ def train_svpg_MPI(iterations=800, batch_size=1, numSimRuns = 1, svpg = True,
     size = comm.Get_size()
     rank = comm.Get_rank()
     num_agents = size / batch_size
+    #print('Num of agents is {}'.format(num_agents))
     comm2D = comm.Create_cart([num_agents, batch_size])
     commX = comm2D.Sub(remain_dims=[False, True])
     commY = comm2D.Sub(remain_dims=[True, False])
@@ -241,7 +250,8 @@ def train_svpg_MPI(iterations=800, batch_size=1, numSimRuns = 1, svpg = True,
                                                       np.mean(all_rewards),np.max(all_rewards)))
             
             #print_rank('Completed iteration {}, agent rewards were {}'.format(iteration, all_rewards))
-
+            if np.mean(all_rewards) >= -0.25:
+                break
         # for saving, need to only save the roots
         '''
         if iteration%10==0 and py==0 :

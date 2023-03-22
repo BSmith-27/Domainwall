@@ -34,17 +34,28 @@ class NeuralNet_A2C(Model):
     def build_actor(self):
         actor = Sequential()
         actor.add(layers.Input(shape=(self.input_dim)))
+        #new
+        #actor.add(layers.Conv1D(256, kernel_size=(9), activation = tf.nn.relu, kernel_initializer=self.initializer))
+        #actor.add(layers.Conv1D(128, kernel_size=(5), activation = tf.nn.relu, kernel_initializer=self.initializer))
+
         actor.add(layers.Conv1D(64, kernel_size=(7), activation = tf.nn.relu, kernel_initializer=self.initializer))
+        #actor.add(layers.MaxPool1D())
         actor.add(layers.Conv1D(32, kernel_size=(3), activation = tf.nn.relu, kernel_initializer=self.initializer))
+        #actor.add(layers.MaxPool1D())
+        #new
+        #actor.add(layers.Conv1D(16, kernel_size=(9), activation = tf.nn.relu, kernel_initializer=self.initializer))
+        #actor.add(layers.BatchNormalization())
         actor.add(layers.AveragePooling1D(2))
         actor.add(layers.Flatten())
         actor.add(layers.Dense(self.num_hidden_nodes_1, activation=tf.nn.relu,
                                kernel_initializer=self.initializer,
                                name='fc_1'))
+        #actor.add(layers.BatchNormalization())
         actor.add(layers.Dense(self.num_hidden_nodes_2, activation=tf.nn.relu,
                                kernel_initializer=self.initializer, name='fc_2'))
+        #actor.add(layers.BatchNormalization())
 
-        actor.add(layers.Dense(self.dim_actions * 2, activation='tanh',
+        actor.add(layers.Dense(self.dim_actions * 2, activation='sigmoid',
                                kernel_initializer=self.initializer,
                                name='output_actions_layer'))
 
@@ -74,7 +85,7 @@ class NeuralNet_A2C(Model):
 
     # define forward pass
     def call(self, states):
-        actions_output = self.actor(states)*3
+        actions_output = self.actor(states) #*3
         # actions_output[0,1] = tf.nn.softplus(actions_output[0,1]) + 1e-5
         value_estimate = self.critic(states)
 
@@ -139,8 +150,8 @@ class WallNet(Model):
         return prediction
 
 class WallEnv:
-  def __init__(self, noise_val = 0.01, 
-               state_size=128, num_steps = 10, 
+  def __init__(self, noise_val = 0.001, 
+               state_size=128, num_steps = 5, 
                reward_freq = 'end', desired_wall = None,
                model_file=None):
     
@@ -165,8 +176,15 @@ class WallEnv:
       self.desired_wall = desired_wall
     else:
       desired_wall = np.zeros(self.state_size)
-      desired_wall[:self.state_size//2] = 0 
+      '''
+      desired_wall[:self.state_size//2] = 0.0
       desired_wall[self.state_size//2 :] = 0.5
+      '''
+      desired_wall[:self.state_size//4] = 1.0
+      desired_wall[self.state_size//4:self.state_size//2] = 0.75
+      desired_wall[self.state_size//2:(self.state_size//4 *3)] = 0.5
+      desired_wall[(self.state_size//4 * 3) :] = 0.25
+      
       self.desired_wall = desired_wall
     
   def reset(self):
@@ -192,7 +210,22 @@ class WallEnv:
     model_state = tf.convert_to_tensor(model_state)
     model_state = model_state[None,:,None] 
     model_actions= np.array(action[1:])
+
+    '''
+    encoded_pos=wall.pos.astype(int)
+    encoded_info=encoded_rows[image][encoded_pos] #returns 4 values
+    
+    #encoded_filler = np.zeros(4) + np.random.normal(size=4, scale=self.noise_val)
+    #model_actions = model_actions.append(encoded_info)
+    
+
+    model_actions = np.pad(model_actions, (0, 4), 'constant')
+    '''
+    if verbose: print('model_actions:', model_actions)
     model_actions = model_actions[None,:] 
+
+    
+
     model_actions = tf.convert_to_tensor(model_actions) 
     if verbose:
       print('model_state is {} and model_actions is {}'.format(model_state, model_actions))
