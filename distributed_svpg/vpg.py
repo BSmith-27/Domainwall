@@ -140,9 +140,9 @@ class WallNet(Model):
 
 class WallEnv:
   def __init__(self, noise_val = 0.01, 
-               state_size=128, num_steps = 10, 
+               state_size=128, max_steps = 200, 
                reward_freq = 'end', desired_wall = None,
-               model_file=None):
+               model_file=None, thresh = -0.04):
     
     #reward_freq = 'all' or 'end'
     self.model_file = model_file
@@ -152,14 +152,14 @@ class WallEnv:
 
     self.state_size = state_size
     self.noise_val = noise_val
-    self.num_steps = num_steps
+    self.max_steps = max_steps
     self.reward_freq = reward_freq
     self.state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
     self.step_num = 0
     self.offset = 5
     self.local_win_size = 7
     self.local_state_size = 14
-    self.num_steps = num_steps
+    self.thresh = thresh
 
     if desired_wall is not None: 
       self.desired_wall = desired_wall
@@ -210,11 +210,13 @@ class WallEnv:
     self.state = new_state
     self.step_num+=1
     reward = self.get_reward(new_state)
-    
 
-    if self.step_num==self.num_steps: done = True 
-
-    else: done = False
+    if self.step_num==self.max_steps: 
+       done = True 
+    elif reward >= self.thresh:
+       done = True
+    else: 
+       done = False
 
     return new_state, reward, done, {}
 
