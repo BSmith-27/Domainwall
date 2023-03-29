@@ -215,7 +215,7 @@ class WallEnv:
 
     if self.step_num==self.max_steps: 
        self.done = True 
-    elif reward >= self.thresh:
+    elif reward !=0 and reward >= self.thresh:
        self.done = True
     else: 
        self.done = False
