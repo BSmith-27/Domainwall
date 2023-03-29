@@ -51,8 +51,8 @@ def getLocalPolicyGrad(sim_results, verbose = False, svpg = False, gamma=0.99):
     #print(state_history_tf.shape, actions_history_tf.shape,
     #      reward_history_tf.shape, done_history_tf.shape)
 
-    _, old_state_values = policy(state_history_tf)
-    _, new_state_values = policy(state_history_tf[1:])
+    _, old_state_values = policy(state_history_tf[:,:,None])
+    _, new_state_values = policy(state_history_tf[1:][:,:,None])
 
     advantage_estimate,value_target = generalized_advantage_estimate(gamma=gamma, lamda=0.90, 
     value_old_state=old_state_values, value_new_state=new_state_values, 
