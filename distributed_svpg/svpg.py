@@ -21,7 +21,7 @@ global world_rank, world_size, world_rank_hvd
 world_rank = comm_world.Get_rank()
 world_size = comm_world.Get_size()
 
-num_agents_per_gpu = 4
+num_agents_per_gpu = 6
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_visible_devices(gpu_devices[world_rank // num_agents_per_gpu], 'GPU')
 tf.config.experimental.set_memory_growth(gpu_devices[world_rank // num_agents_per_gpu], True)
