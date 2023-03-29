@@ -160,6 +160,7 @@ class WallEnv:
     self.local_win_size = 7
     self.local_state_size = 14
     self.thresh = thresh
+    self.done = False
 
     if desired_wall is not None: 
       self.desired_wall = desired_wall
@@ -174,6 +175,7 @@ class WallEnv:
     self.state = new_state
     reward = self.get_reward(new_state)
     self.step_num = 0
+    self.done = False
     return self.state, reward
 
   def step(self, action, verbose=False):
@@ -212,18 +214,18 @@ class WallEnv:
     reward = self.get_reward(new_state)
 
     if self.step_num==self.max_steps: 
-       done = True 
+       self.done = True 
     elif reward >= self.thresh:
-       done = True
+       self.done = True
     else: 
-       done = False
-
+       self.done = False
+    done = self.done
     return new_state, reward, done, {}
 
   def get_reward(self, my_state):
     #write mse reward for self.desired_state and my_state
     if self.reward_freq == 'end':
-      if self.step_num<self.num_steps:
+      if self.done == False:
         reward = 0
       else:
         reward = -mean_squared_error(my_state,self.desired_wall)
