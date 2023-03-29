@@ -212,11 +212,15 @@ class WallEnv:
     self.state = new_state
     self.step_num+=1
     reward = self.get_reward(new_state)
+    cur_reward = -mean_squared_error(new_state,self.desired_wall)
 
+    print('step number is {} and reward is {}'.format(self.step_num, cur_reward))
     if self.step_num==self.max_steps: 
        self.done = True 
-    elif reward !=0 and reward >= self.thresh:
+    if cur_reward>= self.thresh:
+       print('reward is {}'.format(cur_reward))
        self.done = True
+       reward = cur_reward
     else: 
        self.done = False
     done = self.done
