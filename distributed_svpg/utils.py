@@ -153,7 +153,11 @@ def return_collapsed_array(sim_results, key):
     state_history_arrs = [np.array(state) for state in state_history]
     state_shapes = [state.shape for state in state_history_arrs]
     print('state shapes is {} for key {}'.format(state_shapes, key))
-    state_history = np.vstack(state_history_arrs)
+    try:
+        state_history = np.vstack(state_history_arrs)
+    except ValueError:
+        print('encountered shape problem for key {}, resolving'.format(key))
+        state_history = np.hstack(state_history_arrs) #if we have unequal 1 D arrays (like rewards)
 
     if key =='state_history':
         print("state history shape is {}".format(state_history.shape))
