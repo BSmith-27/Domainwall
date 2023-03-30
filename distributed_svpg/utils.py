@@ -151,6 +151,8 @@ def return_collapsed_array(sim_results, key):
     #print('Length of state history in return_collapsed_arr is {}'.format(len(sim_results)))
     state_history = [sim_results[ind][key] for ind in range(len(sim_results))]
     state_history_arrs = [np.array(state) for state in state_history]
+    state_shapes = [state.shape for state in state_history_arrs]
+    print('state shapes is {} for key {}'.format(state_shapes, key))
     state_history = np.vstack(state_history_arrs)
 
     if key =='state_history':
