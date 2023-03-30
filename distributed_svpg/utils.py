@@ -152,7 +152,7 @@ def return_collapsed_array(sim_results, key):
     state_history = [sim_results[ind][key] for ind in range(len(sim_results))]
     state_history_arrs = [np.array(state) for state in state_history]
     state_shapes = [state.shape for state in state_history_arrs]
-    print('state shapes is {} for key {}'.format(state_shapes, key))
+    #print('state shapes is {} for key {}'.format(state_shapes, key))
     try:
         state_history = np.vstack(state_history_arrs)
     except ValueError:
@@ -160,11 +160,11 @@ def return_collapsed_array(sim_results, key):
         state_history = np.hstack(state_history_arrs) #if we have unequal 1 D arrays (like rewards)
 
     if key =='state_history':
-        print("state history shape is {}".format(state_history.shape))
+        #print("state history shape is {}".format(state_history.shape))
         state_history_full = state_history.reshape(-1, state_history.shape[-1])  # make it
         state_history_tf = tf.squeeze(tf.stack(state_history_full[:]))
     else:
-        print("other history shape is {}".format(state_history.shape))
+        #print("other history shape is {}".format(state_history.shape))
         state_history_full = state_history.flatten()
         state_history_tf = tf.squeeze(tf.stack(state_history_full[:]))
 
