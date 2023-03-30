@@ -156,7 +156,7 @@ def return_collapsed_array(sim_results, key):
     try:
         state_history = np.vstack(state_history_arrs)
     except ValueError:
-        print('encountered shape problem for key {}, resolving'.format(key))
+        #print('encountered shape problem for key {}, resolving'.format(key))
         state_history = np.hstack(state_history_arrs) #if we have unequal 1 D arrays (like rewards)
 
     if key =='state_history':
