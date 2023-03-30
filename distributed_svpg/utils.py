@@ -148,8 +148,10 @@ def return_collapsed_array(sim_results, key):
     """given the list of simulation results, return the collapsed array
     so that all the batches are concatenated, as a list of tf tensors"""
 
-    #print('Length of state history in return_collapsed_arr is {}'.format(len(sim_results)))
+    print('Length of state history in return_collapsed_arr is {}'.format(len(sim_results)))
     state_history = [sim_results[ind][key] for ind in range(len(sim_results))]
+    state_history_shapes = [np.array(state).shape for state in state_history]
+    print(state_history_shapes)
     state_history = np.array(state_history)
 
     if key =='state_history':
