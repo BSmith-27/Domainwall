@@ -97,7 +97,7 @@ def getLocalPolicyGrad(sim_results, verbose = False, svpg = False, gamma=0.99):
 
     return gradients
 
-def run_simulation(numSimRuns = 10, agent_comms, verbose = False):
+def run_simulation(numSimRuns = 10, agent_comms=[0,0], verbose = False):
 
     state_history = []
     actions_history = []
