@@ -137,14 +137,17 @@ def run_simulation(numSimRuns = 10, agent_comms=[0,0], verbose = False):
             # Take the selected action in the environment
             next_state, reward, done, info = INS_Env.step(output_actions)
             if len(info.keys())>0:
-                filepath_actor = 'actor_' + str(px) + \
+                print('reward > thresh')
+                filepath_actor = 'actor_' + str(px) + str(py) + \
                 '_reward=' + str(np.round(info['reward'],4)) +'.h5'
-                filepath_critic = 'actor_' + str(px) + \
+                
+                filepath_critic = 'critic_' + str(px) + str(py) + \
                 '_reward=' + str(np.round(info['reward'],4)) +'.h5'
-                if py==0:
-                    save_folder_name = 'intermediate_break_results/'
-                    policy.actor.save_weights(path.join(save_folder_name, filepath_actor))
-                    policy.critic.save_weights(path.join(save_folder_name, filepath_critic))
+                
+                print('saving results')
+                save_folder_name = 'intermediate_break_results/'
+                policy.actor.save_weights(path.join(save_folder_name, filepath_actor))
+                policy.critic.save_weights(path.join(save_folder_name, filepath_critic))
 
             actual_reward = reward if done else 0.0
             reward_total += actual_reward
