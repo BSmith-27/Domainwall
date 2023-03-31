@@ -97,14 +97,14 @@ def getLocalPolicyGrad(sim_results, verbose = False, svpg = False, gamma=0.99):
 
     return gradients
 
-def run_simulation(numSimRuns = 10, verbose = False):
+def run_simulation(numSimRuns = 10, agent_comms, verbose = False):
 
     state_history = []
     actions_history = []
     reward_history = []
     done_history = []
     episode_history = []
-    
+    px,py = agent_comms
     #gym.make('BipedalWalker-v3')
 
     for _ in range(numSimRuns):
@@ -135,7 +135,16 @@ def run_simulation(numSimRuns = 10, verbose = False):
                 print_rank("step number of episode is {}".format(INS_Env.step_num))
             
             # Take the selected action in the environment
-            next_state, reward, done, _ = INS_Env.step(output_actions)
+            next_state, reward, done, info = INS_Env.step(output_actions)
+            if len(info.keys())>0:
+                filepath_actor = 'actor_' + str(px) + \
+                '_reward=' + str(np.round(info['reward'],4)) +'.h5'
+                filepath_critic = 'actor_' + str(px) + \
+                '_reward=' + str(np.round(info['reward'],4)) +'.h5'
+                if py==0:
+                    save_folder_name = 'intermediate_break_results/'
+                    policy.actor.save_weights(path.join(save_folder_name, filepath_actor))
+                    policy.critic.save_weights(path.join(save_folder_name, filepath_critic))
 
             actual_reward = reward if done else 0.0
             reward_total += actual_reward
@@ -196,7 +205,7 @@ def train_svpg_MPI(iterations=800, batch_size=1, numSimRuns = 1, svpg = True,
    
     for iteration in range(iterations):
         
-        sim_result_i = run_simulation(numSimRuns=numSimRuns)
+        sim_result_i = run_simulation(numSimRuns=numSimRuns, [px, py])
         sim_results = commX.gather(sim_result_i, root=0)
 
         if py == 0: #each master agent

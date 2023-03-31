@@ -208,7 +208,7 @@ class WallEnv:
     end =   int(wall_pos + (self.local_win_size-1))
     
     new_state[begin: end] = new_wall
-
+    info = {}
     self.state = new_state
     self.step_num+=1
     cur_reward = -mean_squared_error(new_state,self.desired_wall)
@@ -218,13 +218,14 @@ class WallEnv:
        print('reward is {}'.format(cur_reward))
        self.done = True
        reward = cur_reward
+       info = {'reward':cur_reward}
   
     done = self.done
     reward = self.get_reward(new_state)
 
     #print('step number is {} and reward is {}'.format(self.step_num, cur_reward))
     
-    return new_state, reward, done, {}
+    return new_state, reward, done, info
 
   def get_reward(self, my_state):
     #write mse reward for self.desired_state and my_state
