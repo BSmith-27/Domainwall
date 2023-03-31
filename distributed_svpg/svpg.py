@@ -140,12 +140,19 @@ def run_simulation(numSimRuns = 10, agent_comms=[0,0], verbose = False):
                 print('reward > thresh')
                 filepath_actor = 'actor_' + str(px) + str(py) + \
                 '_reward=' + str(np.round(info['reward'],4)) +'.h5'
-                
+
                 filepath_critic = 'critic_' + str(px) + str(py) + \
                 '_reward=' + str(np.round(info['reward'],4)) +'.h5'
                 
                 print('saving results')
                 save_folder_name = 'intermediate_break_results/'
+                if not os.path.exists(save_folder_name):
+                    try: 
+                        os.mkdir(save_folder_name)
+                        print('Making directory {}'.format(save_folder_name))
+                    except: 
+                        pass
+
                 policy.actor.save_weights(path.join(save_folder_name, filepath_actor))
                 policy.critic.save_weights(path.join(save_folder_name, filepath_critic))
 
