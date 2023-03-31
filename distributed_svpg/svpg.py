@@ -205,7 +205,7 @@ def train_svpg_MPI(iterations=800, batch_size=1, numSimRuns = 1, svpg = True,
    
     for iteration in range(iterations):
         
-        sim_result_i = run_simulation(numSimRuns=numSimRuns, [px, py])
+        sim_result_i = run_simulation(numSimRuns=numSimRuns, agent_comms = [px, py])
         sim_results = commX.gather(sim_result_i, root=0)
 
         if py == 0: #each master agent
