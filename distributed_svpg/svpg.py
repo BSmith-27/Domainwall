@@ -142,7 +142,7 @@ def run_simulation(numSimRuns = 10, agent_comms=[0,0], verbose = False):
                 filepath_critic = 'critic_' + str(px) + str(py) + \
                 '_reward=' + str(np.round(info['reward'],4)) +'.h5'
                 
-                print('saving results')
+                print('saving results in file {}'.format(filepath_actor))
                 save_folder_name = 'intermediate_break_results/'
                 if not os.path.exists(save_folder_name):
                     try: 
