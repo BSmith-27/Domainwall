@@ -142,7 +142,7 @@ class WallEnv:
   def __init__(self, noise_val = 0.01, 
                state_size=128, max_steps = 200, 
                reward_freq = 'end', desired_wall = None,
-               model_file=None, thresh = 1.0):
+               model_file=None, thresh = -0.04):
     
     #reward_freq = 'all' or 'end'
     self.model_file = model_file
