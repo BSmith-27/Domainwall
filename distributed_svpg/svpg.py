@@ -258,7 +258,7 @@ def train_svpg_MPI(iterations=800, batch_size=1, numSimRuns = 1, svpg = True,
         policy.actor.set_weights(localWeight)
         policy.critic.set_weights(localCriticWeight)
 
-        if py==0 and iteration%20==0:
+        if py==0 and iteration%5==0:
             print_rank('Completed iteration {} with mean reward {:.4f} and max {:.4f}'.format(iteration,
                                                       np.mean(all_rewards),np.max(all_rewards)))
             
