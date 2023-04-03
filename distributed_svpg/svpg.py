@@ -156,7 +156,7 @@ def run_simulation(numSimRuns = 10, agent_comms=[0,0], verbose = False):
                 policy.actor.save_weights(path.join(save_folder_name, filepath_actor))
                 policy.critic.save_weights(path.join(save_folder_name, filepath_critic))
 
-            actual_reward = reward if done else 0.0
+            actual_reward = reward #if done else 0.0
             reward_total += actual_reward
 
             next_state = np.squeeze(next_state)
