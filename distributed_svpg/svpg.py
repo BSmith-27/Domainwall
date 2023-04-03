@@ -115,8 +115,6 @@ def run_simulation(numSimRuns = 10, agent_comms=[0,0], verbose = False):
         if verbose: 
             print_rank('state shape is {}'.format(state.shape))
         while not done:
-           
-         
             #print('epiode #{} with step #{}'.format(ep_num, steps))
             # Take an action
             #print('state is {}'.format(state))
@@ -170,7 +168,6 @@ def run_simulation(numSimRuns = 10, agent_comms=[0,0], verbose = False):
             # First up, the actor network
             state = next_state.flatten()
             
-
         episode_history.append(reward_total)
 
     state_history_tf = tf.squeeze(tf.stack(state_history[:]))
