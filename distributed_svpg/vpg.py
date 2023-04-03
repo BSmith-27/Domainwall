@@ -231,7 +231,7 @@ class WallEnv:
     #write mse reward for self.desired_state and my_state
     if self.reward_freq == 'end':
       if self.done == False:
-        reward = 0
+        reward = -1.0/ self.max_steps
       else:
         reward = -mean_squared_error(my_state,self.desired_wall)
         
