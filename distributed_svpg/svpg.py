@@ -28,7 +28,7 @@ tf.config.experimental.set_memory_growth(gpu_devices[world_rank // num_agents_pe
 
 #The policy is a global variable. There will be one policy per MPI process
 
-policy = NeuralNet_A2C(input_dim=(128,1), dim_actions=3, actor_lr = 0.03, critic_lr = 0.035)
+policy = NeuralNet_A2C(input_dim=(128,1), dim_actions=3, actor_lr = 0.01, critic_lr = 0.013)
 model_name = r'trained_surrogate_weights.h5'
 model_path = os.path.join(os.path.abspath(os.getcwd()), 'distributed_svpg/')
 model_file = os.path.join(model_path,model_name)
@@ -54,7 +54,7 @@ def getLocalPolicyGrad(sim_results, verbose = False, svpg = False, gamma=0.99):
     _, old_state_values = policy(state_history_tf)
     _, new_state_values = policy(state_history_tf[1:,:,:])
 
-    advantage_estimate,value_target = generalized_advantage_estimate(gamma=gamma, lamda=0.90, 
+    advantage_estimate,value_target = generalized_advantage_estimate(gamma=gamma, lamda=0.98, 
     value_old_state=old_state_values, value_new_state=new_state_values, 
     reward=reward_history_tf, done=done_history_tf)
     
