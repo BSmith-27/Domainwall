@@ -28,7 +28,7 @@ tf.config.experimental.set_memory_growth(gpu_devices[world_rank // num_agents_pe
 
 #The policy is a global variable. There will be one policy per MPI process
 
-policy = NeuralNet_A2C(input_dim=(128,1), dim_actions=3, actor_lr = 0.0005, critic_lr = 0.0007)
+policy = NeuralNet_A2C(input_dim=(128,1), dim_actions=3, actor_lr = 0.03, critic_lr = 0.035)
 model_name = r'trained_surrogate_weights.h5'
 model_path = os.path.join(os.path.abspath(os.getcwd()), 'distributed_svpg/')
 model_file = os.path.join(model_path,model_name)
