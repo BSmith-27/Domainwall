@@ -194,8 +194,8 @@ class WallEnv:
       return new_state
     
     def start_tensorflow_version(init_steps=20):
-      new_state = tf.zeros(self.state_size) + tf.random.normal(size=self.state_size, scale=self.noise_val)
-       #rewrite the function start_numpy_version, in tensorflow instead of numpy
+      new_state = tf.zeros(self.state_size) + tf.random.normal(shape=self.state_size, stddev=self.noise_val)
+      #rewrite the function start_numpy_version, in tensorflow instead of numpy
       for i in range(init_steps):
         actions = tf.random.normal(shape=(3,))
         actions = tf.clip_by_value(actions, 0.1, 0.9)
