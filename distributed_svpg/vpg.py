@@ -171,50 +171,27 @@ class WallEnv:
       self.desired_wall = desired_wall
     
   def reset(self):
-    def start_numpy_version(init_steps = 20):
-      new_state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
-      for i in range(init_steps):
-          actions = np.random.randn(3)
-          actions = np.clip(actions, 0.1, 0.9)
-          actions[1] = (actions[1]*2)-1 #voltage distribution shift
-          wall_pos = actions[0]*128+self.offset
-          state_subsection = new_state[int(wall_pos-self.local_win_size): int(wall_pos+self.local_win_size)]
-          model_state = np.array(state_subsection)
-          model_state = tf.convert_to_tensor(model_state)
-          model_state = model_state[None,:,None]
-          model_actions = np.array(actions[1:])[None,:]
-          model_actions = tf.convert_to_tensor(model_actions)
-          model_input = [model_state, model_actions]
-          wall_pred = self.ynet(model_input)
-          wall12 = state_subsection[(self.local_win_size - (self.local_win_size-1)): (self.local_win_size + (self.local_win_size-1))]
-          new_wall = wall12+wall_pred
-          begin = int(wall_pos - (self.local_win_size-1))
-          end = int(wall_pos + (self.local_win_size-1))
-          new_state[begin:end]=new_wall
-      return new_state
-    
-    def start_tensorflow_version(init_steps, state_size, noise_val, local_win_size, offset):
-      print('state size is {}, noise_val is {}'.format(state_size, noise_val))
-      new_state = tf.zeros(state_size) + tf.random.normal(shape=(state_size,), stddev=(noise_val))
-      #rewrite the function start_numpy_version, in tensorflow instead of numpy
-      for _ in range(init_steps):
-        actions = tf.random.normal(shape=(3,))
-        actions = tf.clip_by_value(actions, 0.1, 0.9)
-        actions[1] = (actions[1]*2)-1 #voltage distribution shift
-        wall_pos = actions[0]*128+offset
-        state_subsection = new_state[int(wall_pos-self.local_win_size): int(wall_pos+self.local_win_size)]
-        model_state = state_subsection[None,:,None]
-        model_input = [model_state, actions]
-        wall_pred = self.ynet(model_input)
-        wall12 = state_subsection[(local_win_size - (local_win_size-1)): (local_win_size + (local_win_size-1))]
-        new_wall = wall12+wall_pred
-        begin = int(wall_pos - (local_win_size-1))
-        end = int(wall_pos + (local_win_size-1))
-        new_state[begin:end]=new_wall      
-      return new_state
-    
     init_steps = 20
-    new_state = start_tensorflow_version(init_steps, self.state_size, self.noise_val, self.local_win_size, self.offset)
+    new_state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
+    for i in range(init_steps):
+        actions = np.random.randn(3)
+        actions = np.clip(actions, 0.1, 0.9)
+        actions[1] = (actions[1]*2)-1 #voltage distribution shift
+        wall_pos = actions[0]*128+self.offset
+        state_subsection = new_state[int(wall_pos-self.local_win_size): int(wall_pos+self.local_win_size)]
+        model_state = np.array(state_subsection)
+        model_state = tf.convert_to_tensor(model_state)
+        model_state = model_state[None,:,None]
+        model_actions = np.array(actions[1:])[None,:]
+        model_actions = tf.convert_to_tensor(model_actions)
+        model_input = [model_state, model_actions]
+        wall_pred = self.ynet(model_input)
+        wall12 = state_subsection[(self.local_win_size - (self.local_win_size-1)): (self.local_win_size + (self.local_win_size-1))]
+        new_wall = wall12+wall_pred
+        begin = int(wall_pos - (self.local_win_size-1))
+        end = int(wall_pos + (self.local_win_size-1))
+        new_state[begin:end]=new_wall
+
     self.state = new_state
     reward = self.get_reward(new_state)
     self.step_num = 0
