@@ -191,7 +191,7 @@ class WallEnv:
           begin = int(wall_pos - (self.local_win_size-1))
           end = int(wall_pos + (self.local_win_size-1))
           new_state[begin:end]=new_wall
-        return new_state
+      return new_state
     
     def start_tensorflow_version(init_steps=20):
       new_state = tf.zeros(self.state_size) + tf.random.normal(size=self.state_size, scale=self.noise_val)
