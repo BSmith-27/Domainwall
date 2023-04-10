@@ -195,7 +195,7 @@ class WallEnv:
     
     def start_tensorflow_version(init_steps, state_size, noise_val, local_win_size, offset):
       print('state size is {}, noise_val is {}'.format(state_size, noise_val))
-      new_state = tf.zeros(state_size) + tf.random.normal(shape=state_size, stddev=noise_val)
+      new_state = tf.zeros(state_size) + tf.random.normal(shape=(state_size,) stddev=(noise_val))
       #rewrite the function start_numpy_version, in tensorflow instead of numpy
       for _ in range(init_steps):
         actions = tf.random.normal(shape=(3,))
