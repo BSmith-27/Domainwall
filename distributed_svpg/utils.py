@@ -51,8 +51,8 @@ def generalized_advantage_estimate(
     done: flag for end of episode
     """
     #value_old_state = np.array(value_old_state)
-    #value_new_state = np.array(value_new_state)
-    value_new_state = tf.append(value_new_state,0)
+    value_new_state = np.array(value_new_state)
+    value_new_state = np.append(value_new_state,0)
     #reward = np.array(reward)
     #done = np.array(done)
     #print('gamma {}, lambda {}, value old state {}, value new state {}, rewards {}, done {}'.format(
