@@ -194,9 +194,10 @@ class WallEnv:
       return new_state
     
     def start_tensorflow_version(init_steps, state_size, noise_val, local_win_size, offset):
+      print('state size is {}, noise_val is {}'.format(state_size, noise_val))
       new_state = tf.zeros(state_size) + tf.random.normal(shape=state_size, stddev=noise_val)
       #rewrite the function start_numpy_version, in tensorflow instead of numpy
-      for i in range(init_steps):
+      for _ in range(init_steps):
         actions = tf.random.normal(shape=(3,))
         actions = tf.clip_by_value(actions, 0.1, 0.9)
         actions[1] = (actions[1]*2)-1 #voltage distribution shift
