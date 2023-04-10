@@ -172,6 +172,25 @@ class WallEnv:
     
   def reset(self):
     new_state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
+    for i in range(20):
+        actions = np.random.randn(3)
+        actions = np.clip(actions, 0.1, 0.9)
+        actions[1] = (actions[1]*2)-1 #voltage distribution shift
+        wall_pos = actions[0]*128+self.offset
+        state_subsection = new_state[int(wall_pos-self.local_win_size): int(wall_pos+self.local_win_size)]
+        model_state = np.array(state_subsection)
+        model_state = tf.convert_to_tensor(model_state)
+        model_state = model_state[None,:,None]
+        model_actions = np.arrary(actions[1:])
+        model_actions = tf.convert_to_tensor(model_actions)
+        model_input = [model_state, model_actions]
+        wall_pred = self.ynet(model_input)
+        wall12 = state_subsection[(self.local_win_size - (self.local_win_size-1)): (self.local_win_size + (self.local_win_size-1))]
+        new_wall = wall12+wall_pred
+        begin = int(wall_pos - (self.local_win_size-1))
+        end = int(wall_pos + (self.local_win_size-1))
+        new_state[begin:end]=new_wall
+                         
     self.state = new_state
     reward = self.get_reward(new_state)
     self.step_num = 0
