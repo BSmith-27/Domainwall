@@ -181,7 +181,7 @@ class WallEnv:
         model_state = np.array(state_subsection)
         model_state = tf.convert_to_tensor(model_state)
         model_state = model_state[None,:,None]
-        model_actions = np.arrary(actions[1:])
+        model_actions = np.array(actions[1:])
         model_actions = tf.convert_to_tensor(model_actions)
         model_input = [model_state, model_actions]
         wall_pred = self.ynet(model_input)
