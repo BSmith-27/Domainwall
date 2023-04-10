@@ -50,7 +50,7 @@ def generalized_advantage_estimate(
     reward: agent reward of taking actions in the environment
     done: flag for end of episode
     """
-    #value_old_state = np.array(value_old_state)
+    value_old_state = np.array(value_old_state)
     value_new_state = np.array(value_new_state)
     value_new_state = np.append(value_new_state,0)
     #reward = np.array(reward)
@@ -60,14 +60,14 @@ def generalized_advantage_estimate(
     #))
     batch_size = len(reward)
 
-    advantage = tf.zeros(batch_size + 1)
+    advantage = np.zeros(batch_size + 1)
 
     for t in reversed(range(batch_size)):
         #print(t)
         delta = reward[t] + (gamma * value_new_state[t] * done[t]) - value_old_state[t]
         advantage[t] = delta + (gamma * lamda * advantage[t + 1] * done[t])
 
-    value_target = advantage[:batch_size] + tf.squeeze(value_old_state)
+    value_target = advantage[:batch_size] + np.squeeze(value_old_state)
 
     return advantage[:batch_size], value_target
 
