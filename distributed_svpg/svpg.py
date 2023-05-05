@@ -24,8 +24,8 @@ print("world rank is {} and world size is {}".format(world_rank, world_size))
 
 num_agents_per_gpu = 4
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
-tf.config.experimental.set_visible_devices(gpu_devices[world_rank // num_agents_per_gpu], 'GPU')
-tf.config.experimental.set_memory_growth(gpu_devices[world_rank // num_agents_per_gpu], True)
+#tf.config.experimental.set_visible_devices(gpu_devices[world_rank // num_agents_per_gpu], 'GPU')
+#tf.config.experimental.set_memory_growth(gpu_devices[world_rank // num_agents_per_gpu], True)
 
 #The policy is a global variable. There will be one policy per MPI process
 
