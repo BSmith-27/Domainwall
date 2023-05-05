@@ -20,6 +20,7 @@ comm_world = MPI.COMM_WORLD
 global world_rank, world_size, world_rank_hvd
 world_rank = comm_world.Get_rank()
 world_size = comm_world.Get_size()
+print("world rank is {} and world size is {}".format(world_rank, world_size))
 
 num_agents_per_gpu = 6
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
