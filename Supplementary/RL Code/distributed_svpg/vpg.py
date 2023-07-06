@@ -141,8 +141,8 @@ class WallNet(Model):
 class WallEnv:
   def __init__(self, noise_val = 0.01, 
                state_size=128, max_steps = 50, 
-               reward_freq = 'end', desired_wall = None,
-               model_file=None, thresh = -0.025):
+               reward_freq = 'all', desired_wall = None,
+               model_file=None):
     
     #reward_freq = 'all' or 'end'
     self.model_file = model_file
@@ -159,19 +159,16 @@ class WallEnv:
     self.offset = 5
     self.local_win_size = 7
     self.local_state_size = 14
-    self.thresh = thresh
     self.done = False
 
     if desired_wall is not None: 
       self.desired_wall = desired_wall
     else:
       desired_wall = np.zeros(self.state_size)
-      #desired_wall[:self.state_size//2] = 0 
-      #desired_wall[self.state_size//2 :] = 0.5
-      desired_wall[:self.state_size//4] = 0
-      desired_wall[self.state_size//4:self.state_size//2] = 1 #0.75
-      desired_wall[self.state_size//2:(self.state_size//4)*3] = 1 # 0.5
-      desired_wall[(self.state_size//4)*3] = 0 # 0.25
+      desired_wall[:self.state_size//4] = 1.0
+      desired_wall[self.state_size//4:self.state_size//2] = 0.75
+      desired_wall[self.state_size//2:(self.state_size//4)*3] = 0.5
+      desired_wall[(self.state_size//4)*3] = 0.25
       self.desired_wall = desired_wall
     
   def reset(self):
@@ -240,17 +237,9 @@ class WallEnv:
     cur_reward = -mean_squared_error(new_state,self.desired_wall)
     if self.step_num>=self.max_steps: self.done = True 
     else: self.done = False
-    '''
-    if cur_reward>= self.thresh and self.step_num<30: #try to solve within 20 iterations
-       print('reward is {}'.format(cur_reward))
-       self.done = True
-       reward = cur_reward
-       info = {'reward':cur_reward}
-    '''
+
     done = self.done
     reward = self.get_reward(new_state)
-
-    #print('step number is {} and reward is {}'.format(self.step_num, cur_reward))
     
     return new_state, reward, done, info
 
@@ -258,7 +247,6 @@ class WallEnv:
     #write mse reward for self.desired_state and my_state
     if self.reward_freq == 'end':
       if self.done == False:
-        #reward = -1.0/ self.max_steps
         reward=0
       else:
         reward = -mean_squared_error(my_state,self.desired_wall)
