@@ -10,4 +10,4 @@ Images from Dataset 2 can be found here: https://drive.google.com/drive/folders/
 
 Note that this notebook will replicate the training process, but will not produce exactly identical images as the ones in the manuscript, although they should be similar. 
 
-The pre-trained notebook is nearly the same, but does not contain the training loop and uses pre-trained model weights.
+The pre-trained notebook is nearly the same, but does not contain the training loop and uses pre-trained model weights. To run this notebook, you need to use the trained_weights_5_12.h5 file which contains the dynamics model weights.
