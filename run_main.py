@@ -28,6 +28,6 @@ if not os.path.exists(save_folder_name):
     except: 
         pass
     
-distributed_svpg.train_svpg_MPI(iterations = 2000, batch_size = 2, numSimRuns=4, svpg = True,
+distributed_svpg.train_svpg_MPI(iterations = 3000, batch_size = 2, numSimRuns=4, svpg = True,
                                 gamma = 0.99, stein_temp = 2.0, save_folder_name = save_folder_name)
 
