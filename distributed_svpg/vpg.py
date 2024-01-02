@@ -5,6 +5,7 @@ import os
 from tensorflow.keras import Model, layers
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.initializers import GlorotUniform
+from tensorflow.keras import regularizers
 import tensorflow as tf
 from sklearn.metrics import mean_squared_error
 
@@ -81,50 +82,63 @@ class NeuralNet_A2C(Model):
         return actions_output, value_estimate
 
 
+
 #model for dynamics environment
 class WallNet(Model):
    
-    def __init__(self, input_dims = [14,2], output_dims=[12]):
+    def __init__(self, input_dims = [14,2], output_dims=[12], wr = 0.01, lr = 0.01):
         
-        self.initializer =  tf.keras.initializers.he_uniform(seed = np.random.randint(0,50))
+        self.wr = wr
+        self.initializer =  tf.keras.initializers.he_uniform()
         self.input_dims = input_dims
         self.output_dims = output_dims
+        self.lr = lr
         super(WallNet, self).__init__()
         self.model = self.build_model()
-        self.optimizer = tf.keras.optimizers.RMSprop()
+        self.optimizer = tf.keras.optimizers.RMSprop(lr=lr)
+        
 
     def build_model(self):
         InputImage = layers.Input(shape=(self.input_dims[0],1))
         InputNumeric = layers.Input(shape=(self.input_dims[1]))
         cnet = layers.Dense(512, activation=tf.nn.relu,
-                               kernel_initializer=self.initializer )(InputImage)
-
+                               kernel_initializer=self.initializer, 
+                           kernel_regularizer=regularizers.L2(self.wr))(InputImage)
+       
         cnet = layers.Dense(512, activation=tf.nn.relu,
-                               kernel_initializer=self.initializer )(cnet)
-        
+                               kernel_initializer=self.initializer,
+                           kernel_regularizer=regularizers.L2(self.wr))(cnet)
+        cnet = layers.Dropout(0.2)(cnet)
         cnet = layers.Dense(256, activation=tf.nn.relu,
-                               kernel_initializer=self.initializer )(cnet)
+                               kernel_initializer=self.initializer,
+                           kernel_regularizer=regularizers.L2(self.wr))(cnet)
         
         
         cnet = layers.Flatten()(cnet)
         
         cnet = Model(inputs=InputImage, outputs=cnet)
-
-        numeric = layers.Dense(256, activation=tf.nn.relu,
-                               kernel_initializer=self.initializer )(InputNumeric)
-
-        numeric = layers.Dense(256, activation=tf.nn.relu,
-                               kernel_initializer=self.initializer )(numeric)
         
         numeric = layers.Dense(256, activation=tf.nn.relu,
-                               kernel_initializer=self.initializer )(numeric)
+                               kernel_initializer=self.initializer,
+                              kernel_regularizer=regularizers.L2(self.wr))(InputNumeric)
+        numeric = layers.Dropout(0.2)(numeric)
+        numeric = layers.Dense(256, activation=tf.nn.relu,
+                               kernel_initializer=self.initializer,
+                              kernel_regularizer=regularizers.L2(self.wr))(numeric)
+        numeric = layers.Dropout(0.2)(numeric)
+        numeric = layers.Dense(256, activation=tf.nn.relu,
+                               kernel_initializer=self.initializer,
+                              kernel_regularizer=regularizers.L2(self.wr))(numeric)
 
         numeric = Model(inputs=InputNumeric, outputs=numeric)
 
         combined = layers.concatenate([cnet.output, numeric.output])
         
-        x = layers.Dense(512,activation=tf.nn.relu, kernel_initializer=self.initializer)(combined)
-        x = layers.Dense(256,activation=tf.nn.relu, kernel_initializer=self.initializer)(x)
+        x = layers.Dense(512,activation=tf.nn.relu, kernel_initializer=self.initializer,
+                        kernel_regularizer=regularizers.L2(self.wr))(combined)
+        x = layers.Dropout(0.2)(x)
+        x = layers.Dense(256,activation=tf.nn.relu, kernel_initializer=self.initializer,
+                        kernel_regularizer=regularizers.L2(self.wr))(x)
         combined_network = layers.Dense(self.output_dims[0],activation='linear', 
                                         kernel_initializer=self.initializer)(x)
     
