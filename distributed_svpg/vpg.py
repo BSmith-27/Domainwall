@@ -155,7 +155,7 @@ class WallNet(Model):
 
 class WallEnv(gym.Env):
 
-    def __init__(self, dynamics_model, noise_val = 0.01,
+    def __init__(self, model_file, noise_val = 0.01,
                    state_size=128, num_steps = 30,
                    reward_freq = 'all', desired_wall = None, actions_type = 'one',
                  activation = True):
@@ -172,6 +172,10 @@ class WallEnv(gym.Env):
         #self.observation_space = spaces.Box(low=-10,high=10,shape=(128,))
 
         #reward_freq = 'all' or 'end'
+        self.model_file = model_file
+        self.ynet = WallNet()
+        self.ynet.compile()
+        self.ynet.model.load_weights(self.model_file)
         self.state_size = state_size
         self.noise_val = noise_val
         self.num_steps = num_steps
@@ -181,7 +185,7 @@ class WallEnv(gym.Env):
         self.activation = activation
         self.local_win_size = 7
         self.offset = 5
-        self.dyn_model = dynamics_model
+        self.dyn_model = self.ynet
         self.actions_type = actions_type
         #if self.actions_type =='one':
         #    self.action_space = spaces.Box(low=np.array([0.0]), high=np.array([1.0]), dtype=np.float32)
