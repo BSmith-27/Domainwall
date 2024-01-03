@@ -235,7 +235,9 @@ class WallEnv(gym.Env):
             wall_pos = 0.0+(1.0/self.num_steps)*self.step_number
             #wall_pos = np.clip(wall_pos, 0.1, 0.9)
             wall_pos = 128*wall_pos*0.8 + 2*self.offset
-            action_dyn = np.array([action[0], 0.75])
+            action_dyn = np.array([action, 0.75])
+            
+
 
         #print(action_dyn)
 
