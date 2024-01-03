@@ -128,7 +128,7 @@ def run_simulation(numSimRuns = 10, agent_comms=[0,0], verbose = False):
             output_action = tfp.distributions.MultivariateNormalDiag(
                 tf.nn.softplus(actions_output[:, 0]), tf.nn.softplus(actions_output[:, 1])).sample(1)
 
-            output_actions = np.squeeze(tf.clip_by_value(output_action, 0.1, 0.9).numpy())
+            output_actions = np.squeeze(tf.clip_by_value(output_action, 0.0, 0.99).numpy())
             if verbose:
                 print_rank("output actions is {}".format(output_actions))
                 print_rank("step number of episode is {}".format(INS_Env.step_num))
