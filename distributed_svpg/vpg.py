@@ -273,6 +273,7 @@ class WallEnv(gym.Env):
         new_state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
         self.state = new_state
         self.step_number = 0
-        return self.state, _
+        reward = 0
+        return self.state, reward
 
 
