@@ -251,7 +251,6 @@ class WallEnv(gym.Env):
         new_state[int(wall_pos - self.local_win_size+1): int(wall_pos + self.local_win_size-1)] = new_wall_subsection + local_mean
         if self.activation:
           if np.abs(action_dyn[0]*action_dyn[1])>=0.20:
-            print()
             self.state = new_state
           else:
             self.state = self.state
