@@ -29,7 +29,7 @@ num_agents_per_gpu = 6
 
 #The policy is a global variable. There will be one policy per MPI process
 
-policy = NeuralNet_A2C(input_dim=(128,1), dim_actions=3, actor_lr = 0.001, critic_lr = 0.0013)
+policy = NeuralNet_A2C(input_dim=(128,1), dim_actions=1, actor_lr = 0.001, critic_lr = 0.0013)
 model_name = r'trained_surrogate_new_weights.h5'
 model_path = os.path.join(os.path.abspath(os.getcwd()), 'distributed_svpg/')
 model_file = os.path.join(model_path,model_name)
