@@ -19,7 +19,7 @@ By default we only place 6 NNs per GPU. This is doable for small networks, not f
 '''
 
 #TODO: Dynamically adjust the number of agents per GPU based on network size and batch update size.
-save_folder_name = 'a2c_wallenv_results/'
+save_folder_name = 'a2c_wallenv_1a_results/'
 import os
 if not os.path.exists(save_folder_name):
     try: 
