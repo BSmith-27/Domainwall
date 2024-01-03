@@ -46,7 +46,7 @@ class NeuralNet_A2C(Model):
         actor.add(layers.Dense(self.num_hidden_nodes_2, activation=tf.nn.relu,
                                kernel_initializer=self.initializer, name='fc_2'))
 
-        actor.add(layers.Dense(self.dim_actions * 2, activation='sigmoid',
+        actor.add(layers.Dense(self.dim_actions * 2, activation='tanh',
                                kernel_initializer=self.initializer,
                                name='output_actions_layer'))
 
