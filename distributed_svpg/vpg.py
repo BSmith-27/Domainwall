@@ -8,6 +8,7 @@ from tensorflow.keras.initializers import GlorotUniform
 from tensorflow.keras import regularizers
 import tensorflow as tf
 from sklearn.metrics import mean_squared_error
+import gym
 
 class NeuralNet_A2C(Model):
     # This defines two distinct models
@@ -152,124 +153,122 @@ class WallNet(Model):
 
         return prediction
 
-class WallEnv:
-  def __init__(self, noise_val = 0.01, 
-               state_size=128, max_steps = 200, 
-               reward_freq = 'end', desired_wall = None,
-               model_file=None, thresh = -0.025):
-    
-    #reward_freq = 'all' or 'end'
-    self.model_file = model_file
-    self.ynet = WallNet()
-    self.ynet.compile()
-    self.ynet.model.load_weights(self.model_file)
+class WallEnv(gym.Env):
 
-    self.state_size = state_size
-    self.noise_val = noise_val
-    self.max_steps = max_steps
-    self.reward_freq = reward_freq
-    self.state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
-    self.step_num = 0
-    self.offset = 5
-    self.local_win_size = 7
-    self.local_state_size = 14
-    self.thresh = thresh
-    self.done = False
+    def __init__(self, dynamics_model, noise_val = 0.01,
+                   state_size=128, num_steps = 30,
+                   reward_freq = 'all', desired_wall = None, actions_type = 'one',
+                 activation = True):
+        '''
 
-    if desired_wall is not None: 
-      self.desired_wall = desired_wall
-    else:
-      desired_wall = np.zeros(self.state_size)
-      desired_wall[:self.state_size//2] = 0 
-      desired_wall[self.state_size//2 :] = 0.5
-      self.desired_wall = desired_wall
-    
-  def reset(self):
-    init_steps = 20
-    new_state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
-    for i in range(init_steps):
-        actions = np.random.randn(3)
-        actions = np.clip(actions, 0.1, 0.9)
-        actions[1] = (actions[1]*2)-1 #voltage distribution shift
-        wall_pos = actions[0]*128+self.offset
-        state_subsection = new_state[int(wall_pos-self.local_win_size): int(wall_pos+self.local_win_size)]
-        model_state = np.array(state_subsection)
-        model_state = tf.convert_to_tensor(model_state)
-        model_state = model_state[None,:,None]
-        model_actions = np.array(actions[1:])[None,:]
-        model_actions = tf.convert_to_tensor(model_actions)
-        model_input = [model_state, model_actions]
-        wall_pred = self.ynet(model_input)
-        wall12 = state_subsection[(self.local_win_size - (self.local_win_size-1)): (self.local_win_size + (self.local_win_size-1))]
-        new_wall = wall12+wall_pred
-        begin = int(wall_pos - (self.local_win_size-1))
-        end = int(wall_pos + (self.local_win_size-1))
-        new_state[begin:end]=new_wall
+        actions_type: 'all' or 'one' or 'two': if 'one', will adjust first and last (position and pulse width) automatically
+        without need to learn it. If 'two' it will allow for pulse amplitude and width actions only.
+        activation (True or False): whether there is a threshold activation V and PW before a change is made to the wall state
+        '''
 
-    self.state = new_state
-    reward = self.get_reward(new_state)
-    self.step_num = 0
-    self.done = False
-    return self.state, reward
+        super(WallEnv, self).__init__()
 
-  def step(self, action, verbose=False):
-   
-    if verbose: print("ACTIONS: ",action)
-    #action has three values, first value is position, second is bias amp. third is pulse width
-    #THe first one is used to determine the sub-section of the state
-    wall_pos = action[0]*128 + self.offset
-    if verbose:
-      print("FULL WALL: ", self.state)
-      print("EXACT WALL POSITION: ", int(wall_pos))
-    self.state_subsection = self.state[int(wall_pos - self.local_win_size): int(wall_pos + self.local_win_size)]
-    if verbose: print("LOCAL WALL: ", self.state_subsection)
-    
-    model_state= np.array(self.state_subsection)
-    model_state = tf.convert_to_tensor(model_state)
-    model_state = model_state[None,:,None] 
-    model_actions= np.array(action[1:])
-    model_actions = model_actions[None,:] 
-    model_actions = tf.convert_to_tensor(model_actions) 
-    if verbose:
-      print('model_state is {} and model_actions is {}'.format(model_state, model_actions))
 
-    model_input = [model_state, model_actions]
-    wall_pred = self.ynet(model_input)
-    wall12 = self.state_subsection[(self.local_win_size - (self.local_win_size-1)): (self.local_win_size + (self.local_win_size-1))]
-    new_wall = wall12 + wall_pred
-    new_state = np.copy(self.state)
-    begin = int(wall_pos - (self.local_win_size-1))
-    end =   int(wall_pos + (self.local_win_size-1))
-    
-    new_state[begin: end] = new_wall
-    info = {}
-    self.state = new_state
-    self.step_num+=1
-    cur_reward = -mean_squared_error(new_state,self.desired_wall)
-    if self.step_num>=self.max_steps: self.done = True 
-    else: self.done = False
-    if cur_reward>= self.thresh and self.step_num<30: #try to solve within 20 iterations
-       print('reward is {}'.format(cur_reward))
-       self.done = True
-       reward = cur_reward
-       info = {'reward':cur_reward}
-  
-    done = self.done
-    reward = self.get_reward(new_state)
+        #self.observation_space = spaces.Box(low=-10,high=10,shape=(128,))
 
-    #print('step number is {} and reward is {}'.format(self.step_num, cur_reward))
-    
-    return new_state, reward, done, info
+        #reward_freq = 'all' or 'end'
+        self.state_size = state_size
+        self.noise_val = noise_val
+        self.num_steps = num_steps
+        self.reward_freq = reward_freq
+        self.state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
+        self.step_number = 0
+        self.activation = activation
+        self.local_win_size = 7
+        self.offset = 5
+        self.dyn_model = dynamics_model
+        self.actions_type = actions_type
+        #if self.actions_type =='one':
+        #    self.action_space = spaces.Box(low=np.array([0.0]), high=np.array([1.0]), dtype=np.float32)
+        #elif self.actions_type=='two':
+        #    self.action_space = spaces.Box(low=np.array([-1.0, 0.0]), high=np.array([1.0, 1.0]), dtype=np.float32)
+        #else:
+        #    self.action_space = spaces.Box(low=np.array([0.1, 0.0, 0.0]), high=np.array([0.9, 1.0, 1.0]), dtype=np.float32)
 
-  def get_reward(self, my_state):
-    #write mse reward for self.desired_state and my_state
-    if self.reward_freq == 'end':
-      if self.done == False:
-        reward = -1.0/ self.max_steps
-      else:
-        reward = -mean_squared_error(my_state,self.desired_wall)
-        
-    elif self.reward_freq == 'all':
-      reward = -mean_squared_error(my_state,self.desired_wall)
-      
-    return reward
+        if desired_wall is not None:
+            self.desired_wall = desired_wall
+        else:
+            desired_wall = np.zeros(self.state_size)
+            desired_wall[:self.state_size//4] = 1.0
+            desired_wall[self.state_size//4:self.state_size//2] = 0.75
+            desired_wall[self.state_size//2:(self.state_size//4 *3)] = 0.5
+            desired_wall[(self.state_size//4 * 3) :] = 0.25
+            desired_wall = desired_wall*0.5
+            self.desired_wall = desired_wall
+
+    def get_reward(self, my_state):
+        if self.reward_freq == 'end':
+            if self.step_number<self.num_steps:
+                reward = 0
+            else:
+                reward = -mean_squared_error(my_state,self.desired_wall)
+        elif self.reward_freq == 'all':
+            reward = -mean_squared_error(my_state,self.desired_wall)
+        return reward
+
+    def step(self, action):
+
+        #action has three values, first value is position, second is bias amp. third is pulse width
+
+
+        if self.actions_type == 'all':
+            action[0] = np.clip(action[0], 0.1, 0.9)
+            wall_pos = action[0]*128
+            action_dyn = action[1:]
+        elif self.actions_type=='two':
+            wall_pos = 0.0+(1.0/self.num_steps)*self.step_number
+            wall_pos = 128*wall_pos*0.8 + 2*self.offset
+            action_0 = np.clip(action[0], -1, 1)
+            action_1 = np.clip(action[1], 0, 1)
+            action_dyn = np.array([action_0, action_1])
+
+        else:
+            wall_pos = 0.0+(1.0/self.num_steps)*self.step_number
+            #wall_pos = np.clip(wall_pos, 0.1, 0.9)
+            wall_pos = 128*wall_pos*0.8 + 2*self.offset
+            action_dyn = np.array([action[0], 0.75])
+
+        #print(action_dyn)
+
+        state_subsection_raw = self.state[int(wall_pos - self.local_win_size): int(wall_pos + self.local_win_size)]
+        local_mean = np.mean(state_subsection_raw) #this is not right,  we need to figure out something better later...
+        state_subsection = state_subsection_raw - local_mean
+        self.step_number+=1
+
+        #print(state_subsection, action_dyn)
+
+        new_wall_subsection = self.dyn_model([state_subsection[None,:,None], action_dyn[None,:]])
+        new_state = np.copy(self.state)
+        new_state[int(wall_pos - self.local_win_size+1): int(wall_pos + self.local_win_size-1)] = new_wall_subsection + local_mean
+        if self.activation:
+          if np.abs(action_dyn[0]*action_dyn[1])>=0.20:
+            print()
+            self.state = new_state
+          else:
+            self.state = self.state
+        else:
+          self.state = new_state
+
+        new_state = self.state
+        reward = self.get_reward(new_state)
+        done= False
+
+
+        if self.step_number == self.num_steps:
+            done=True
+        info = {}
+
+        return new_state, reward, done, info, _
+
+    def reset(self):
+        new_state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
+        self.state = new_state
+        self.step_number = 0
+        return self.state, _
+
+
