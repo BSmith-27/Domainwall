@@ -267,7 +267,7 @@ class WallEnv(gym.Env):
             done=True
         info = {}
 
-        return new_state, reward, done, info, _
+        return new_state, reward, done, info
 
     def reset(self):
         new_state = np.zeros(self.state_size) + np.random.normal(size=self.state_size, scale=self.noise_val)
