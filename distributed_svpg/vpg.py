@@ -96,7 +96,7 @@ class WallNet(Model):
         self.lr = lr
         super(WallNet, self).__init__()
         self.model = self.build_model()
-        self.optimizer = tf.keras.optimizers.RMSprop(lr=lr)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
         
 
     def build_model(self):
