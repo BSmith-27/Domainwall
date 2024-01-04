@@ -29,5 +29,5 @@ if not os.path.exists(save_folder_name):
         pass
     
 distributed_svpg.train_svpg_MPI(iterations = 501, batch_size = 2, numSimRuns=1, svpg = False,
-                                gamma = 0.90, stein_temp = 20.0, save_folder_name = save_folder_name)
+                                gamma = 0.999, stein_temp = 2.0, save_folder_name = save_folder_name)
 
